@@ -14,9 +14,21 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+find_package(SDL3 REQUIRED)
+find_package(SDL3_ttf REQUIRED)
+
 add_executable(tesseract
     src/main.cpp
+    # from draw librery
+    lib/draw/drawDraw.cpp
+    lib/draw/drawFill.cpp
 )
 
-find_package(SDL3 REQUIRED)
-target_link_libraries(tesseract PRIVATE SDL3::SDL3)
+target_include_directories(tesseract PRIVATE
+    lib
+)
+
+target_link_libraries(tesseract PRIVATE
+    SDL3::SDL3
+    SDL3_ttf::SDL3_ttf
+)

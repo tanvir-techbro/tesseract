@@ -1,12 +1,12 @@
 /*
-** Tesseract - A simple 2D browserlike rendering engine.
+** Tesseract - A simple browser engine.
 ** https://github.com/tanvir-techbro/tesseract
 **
 ** Copyright (c) 2026-present tanvir-techbro (Tanvir)
 ** Released under the MIT License.
 */
 
-/* main.c file - Main */
+/* Tess.cpp file - Main */
 
 #include "DrawKit/Draw.hpp"
 #include <SDL3/SDL.h>

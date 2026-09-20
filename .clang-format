@@ -1,0 +1,16 @@
+##
+## Tesseract - A simple 2D browserlike rendering engine.
+## https://github.com/tanvir-techbro/tesseract
+##
+## Copyright (c) 2026-present tanvir-techbro (Tanvir)
+## Released under the MIT License.
+##
+
+BasedOnStyle: LLVM
+IndentWidth: 6
+TabWidth: 6
+UseTab: Never
+ColumnLimit: 0
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+BreakBeforeBraces: Attach

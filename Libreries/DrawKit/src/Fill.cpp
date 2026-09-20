@@ -6,12 +6,12 @@
 ** Released under the MIT License.
 */
 
-#include "draw.hpp"
+#include "DrawKit/Draw.hpp"
 #include <algorithm>
 #include <cmath>
 #include <vector>
 
-namespace tesseract::draw {
+namespace Tess::Draw {
 
 void FillCircle(SDL_Renderer *r, float cx, float cy, float radius) {
       if (radius <= 0.0f) {
@@ -41,4 +41,4 @@ void FillRoundedRect(SDL_Renderer *r, SDL_FRect rect, float radius) {
       FillCircle(r, rect.x + rect.w - rad, rect.y + rect.h - rad, rad);
 }
 
-} // namespace tesseract::draw
+} // namespace Tess::Draw

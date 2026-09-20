@@ -6,11 +6,11 @@
 ** Released under the MIT License.
 */
 
-#include "draw.hpp"
+#include "DrawKit/Draw.hpp"
 #include <algorithm>
 #include <cmath>
 
-namespace tesseract::draw {
+namespace Tess::Draw {
 
 void DrawArc(SDL_Renderer *r, float cx, float cy, float radius, float start_deg, float end_deg) {
       for (float a = start_deg; a <= end_deg; a += 2.0f) {
@@ -33,4 +33,12 @@ void DrawRoundedOutline(SDL_Renderer *r, SDL_FRect rect, float radius) {
       DrawArc(r, rect.x + rad, rect.y + rect.h - rad, rad, 90.0f, 180.0f);
 }
 
-} // namespace tesseract::draw
+void DrawText(SDL_Renderer *r, TTF_TextEngine *e, TTF_Font *f, std::string str, int x, int y) {
+      //
+}
+
+void DrawCaret(SDL_Renderer *r, TTF_Text *txt, float x, float y) {
+      //
+}
+
+} // namespace Tess::Draw

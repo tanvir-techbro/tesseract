@@ -8,7 +8,7 @@
 
 /* main.c file - Main */
 
-#include "../lib/draw/draw.hpp"
+#include "DrawKit/Draw.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <print>
@@ -42,9 +42,9 @@ int main(int argc, char *argv[]) {
             return 1;
       }
 
-      TTF_Font *font = TTF_OpenFont("assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf", 16);
+      TTF_Font *font = TTF_OpenFont("Assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf", 16);
       if (!font) {
-            font = TTF_OpenFont("../assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf", 16);
+            font = TTF_OpenFont("../Assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf", 16);
       }
       if (!font) {
             std::println(stderr, "font failed: {}", SDL_GetError());
@@ -97,11 +97,11 @@ int main(int argc, char *argv[]) {
 
             // Draw URL Box Background
             SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
-            tesseract::draw::FillRoundedRect(renderer, urlBox, 8.0f);
+            Tess::Draw::FillRoundedRect(renderer, urlBox, 8.0f);
 
             // Draw URL Box Border
             SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
-            tesseract::draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
+            Tess::Draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
 
             std::string full = prefix + url;
             TTF_SetTextString(txt, full.c_str(), 0);

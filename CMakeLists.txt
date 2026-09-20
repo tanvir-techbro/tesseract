@@ -10,6 +10,7 @@ cmake_minimum_required(VERSION 3.20)
 
 project(tesseract VERSION 1.0 LANGUAGES CXX)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
@@ -19,13 +20,13 @@ find_package(SDL3_ttf REQUIRED)
 
 add_executable(tesseract
     src/main.cpp
-    # from draw librery
-    lib/draw/drawDraw.cpp
-    lib/draw/drawFill.cpp
+    # from DrawKit librery
+    Libreries/DrawKit/src/Outline.cpp
+    Libreries/DrawKit/src/Fill.cpp
 )
 
 target_include_directories(tesseract PRIVATE
-    lib
+    Libreries
 )
 
 target_link_libraries(tesseract PRIVATE

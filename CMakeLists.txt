@@ -39,3 +39,5 @@ target_link_libraries(tesseract PRIVATE
     SDL3::SDL3
     SDL3_ttf::SDL3_ttf
 )
+
+add_subdirectory(Tools)

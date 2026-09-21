@@ -7,6 +7,9 @@
 */
 
 #include "DrawKit/Draw.hpp"
+#include <SDL3/SDL_render.h>
+#include <SDL3/SDL_timer.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #include <algorithm>
 #include <cmath>
 
@@ -33,12 +36,19 @@ void DrawRoundedOutline(SDL_Renderer *r, SDL_FRect rect, float radius) {
       DrawArc(r, rect.x + rad, rect.y + rect.h - rad, rad, 90.0f, 180.0f);
 }
 
-void DrawText(SDL_Renderer *r, TTF_TextEngine *e, TTF_Font *f, std::string str, int x, int y) {
-      //
+void DrawText(SDL_Renderer *r, TTF_Text *txt, const std::string &str, float x, float y) {
+      TTF_SetTextString(txt, str.c_str(), 0);
+      TTF_DrawRendererText(txt, x, y);
 }
 
 void DrawCaret(SDL_Renderer *r, TTF_Text *txt, float x, float y) {
-      //
+      if ((SDL_GetTicks() / 530) % 2 != 0) {
+            return;
+      }
+      int tw = 0, th = 0;
+      TTF_GetTextSize(txt, &tw, &th);
+      SDL_FRect caret = {x + (float)tw, y, 2.0f, (float)th};
+      SDL_RenderFillRect(r, &caret);
 }
 
 } // namespace Tess::Draw

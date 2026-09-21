@@ -103,17 +103,37 @@ int main(int argc, char *argv[]) {
             SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             Tess::Draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
 
-            std::string full = prefix + url;
-            TTF_SetTextString(txt, full.c_str(), 0);
-            TTF_DrawRendererText(txt, urlBox.x + 8, urlBox.y + 5);
+            Tess::Draw::DrawText(renderer, txt, prefix + url, urlBox.x + 8, urlBox.y + 5);
 
-            if (focused && (SDL_GetTicks() / 530) % 2 == 0) {
-                  int tw = 0, th = 0;
-                  TTF_GetTextSize(txt, &tw, &th);
-                  SDL_FRect caret = {urlBox.x + 8 + tw, urlBox.y + 5, 2, (float)th};
+            if (focused) {
                   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                  SDL_RenderFillRect(renderer, &caret);
+                  Tess::Draw::DrawCaret(renderer, txt, urlBox.x + 8, urlBox.y + 5);
             }
+
+            // Page viewport: 5px under URL bar, 5px off left/right/bottom
+            float pageY = urlBox.y + urlBox.h + 5.0f;
+            SDL_FRect page = {
+                5.0f,
+                pageY,
+                (float)windowWidth - 10.0f,
+                (float)windowHeight - pageY - 5.0f,
+            };
+            if (page.w < 0.0f) {
+                  page.w = 0.0f;
+            }
+            if (page.h < 0.0f) {
+                  page.h = 0.0f;
+            }
+            SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+            Tess::Draw::FillRoundedRect(renderer, page, 8.0f);
+
+            // Clip all page content to the viewport
+            SDL_Rect clip = {(int)page.x, (int)page.y, (int)page.w, (int)page.h};
+            SDL_SetRenderClipRect(renderer, &clip);
+
+            // TODO: rendered page stuff goes here
+
+            SDL_SetRenderClipRect(renderer, nullptr);
 
             // Display the rendered frame
             SDL_RenderPresent(renderer);

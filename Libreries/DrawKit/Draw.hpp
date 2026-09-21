@@ -19,7 +19,7 @@ namespace Tess::Draw {
 /* Outline.cpp */
 void DrawArc(SDL_Renderer *r, float cx, float cy, float radius, float start_deg, float end_deg);
 void DrawRoundedOutline(SDL_Renderer *r, SDL_FRect rect, float radius);
-void DrawText(SDL_Renderer *r, TTF_TextEngine *e, TTF_Font *f, std::string str, int x, int y);
+void DrawText(SDL_Renderer *r, TTF_Text *txt, const std::string &str, float x, float y);
 void DrawCaret(SDL_Renderer *r, TTF_Text *txt, float x, float y);
 
 /* Fill.cpp */

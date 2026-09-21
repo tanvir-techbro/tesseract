@@ -59,7 +59,6 @@ int main(int argc, char *argv[]) {
       SDL_StartTextInput(window);
 
       std::string url = "";
-      const std::string prefix = "http://";
       bool focused = true;
 
       while (running) {
@@ -103,7 +102,7 @@ int main(int argc, char *argv[]) {
             SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             Tess::Draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
 
-            Tess::Draw::DrawText(renderer, txt, prefix + url, urlBox.x + 8, urlBox.y + 5);
+            Tess::Draw::DrawText(renderer, txt, url, urlBox.x + 8, urlBox.y + 5);
 
             if (focused) {
                   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);

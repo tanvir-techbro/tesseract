@@ -46,9 +46,13 @@ void DrawCaret(SDL_Renderer *r, TTF_Text *txt, float x, float y) {
             return;
       }
       int tw = 0, th = 0;
-      TTF_GetTextSize(txt, &tw, &th);
+      TextSize(txt, tw, th);
       SDL_FRect caret = {x + (float)tw, y, 2.0f, (float)th};
       SDL_RenderFillRect(r, &caret);
+}
+
+void TextSize(TTF_Text *txt, int &w, int &h) {
+      TTF_GetTextSize(txt, &w, &h);
 }
 
 } // namespace Tess::Draw

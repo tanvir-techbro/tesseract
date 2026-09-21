@@ -21,6 +21,7 @@ void DrawArc(SDL_Renderer *r, float cx, float cy, float radius, float start_deg,
 void DrawRoundedOutline(SDL_Renderer *r, SDL_FRect rect, float radius);
 void DrawText(SDL_Renderer *r, TTF_Text *txt, const std::string &str, float x, float y);
 void DrawCaret(SDL_Renderer *r, TTF_Text *txt, float x, float y);
+void TextSize(TTF_Text *txt, int &w, int &h);
 
 /* Fill.cpp */
 void FillCircle(SDL_Renderer *r, float cx, float cy, float radius);

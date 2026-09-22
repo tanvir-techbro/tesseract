@@ -36,6 +36,8 @@ add_executable(tesseract
     # from HtmlKit librery
     Libreries/HtmlKit/src/Tokenize.cpp
     Libreries/HtmlKit/src/Parse.cpp
+    # from RenderKit librery
+    Libreries/RenderKit/src/Render.cpp
 )
 
 target_include_directories(tesseract PRIVATE

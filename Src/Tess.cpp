@@ -9,9 +9,13 @@
 /* Tess.cpp file - Main */
 
 #include "DrawKit/Draw.hpp"
+#include "HtmlKit/Html.hpp"
+#include "RenderKit/Render.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <fstream>
 #include <print>
+#include <sstream>
 #include <string>
 
 int main(int argc, char *argv[]) {
@@ -61,6 +65,23 @@ int main(int argc, char *argv[]) {
       std::string url = "";
       bool focused = true;
 
+      // TEMP: file to render comes from argv[1] until NetKit lands
+      Tess::Html::Document doc;
+      {
+            std::string src = "<h1>tesseract</h1><p>pass a file: ./build/tesseract page.html</p>";
+            if (argc > 1) {
+                  std::ifstream file(argv[1]);
+                  if (file) {
+                        std::ostringstream stream;
+                        stream << file.rdbuf();
+                        src = stream.str();
+                  } else {
+                        std::println(stderr, "cannot open {}", argv[1]);
+                  }
+            }
+            doc = Tess::Html::Parse(Tess::Html::Tokenize(src));
+      }
+
       while (running) {
             SDL_FRect urlBox = {
                 .x = windowWidth * 0.05f, // Starts 10% from left border
@@ -102,6 +123,9 @@ int main(int argc, char *argv[]) {
             SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             Tess::Draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
 
+            // URL bar owns white/16pt; Render() mutates both for page text
+            TTF_SetFontSize(font, 16);
+            TTF_SetTextColor(txt, 255, 255, 255, 255);
             Tess::Draw::DrawText(renderer, txt, url, urlBox.x + 8, urlBox.y + 5);
 
             if (focused) {
@@ -130,7 +154,8 @@ int main(int argc, char *argv[]) {
             SDL_Rect clip = {(int)page.x, (int)page.y, (int)page.w, (int)page.h};
             SDL_SetRenderClipRect(renderer, &clip);
 
-            // TODO: rendered page stuff goes here
+            // TODO: (NetKit): rendered page stuff goes here
+            Tess::Render::Render(renderer, txt, font, doc, page);
 
             SDL_SetRenderClipRect(renderer, nullptr);
 

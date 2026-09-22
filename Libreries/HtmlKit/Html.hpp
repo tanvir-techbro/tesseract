@@ -28,12 +28,15 @@ struct Token {
 };
 std::vector<Token> Tokenize(std::string_view src);
 
-/* Parse */
+/* Parse  */
 struct Node {
-      std::string tag;
-      std::string text;
-      std::vector<Node> kids;
+      std::string tag;          // element name, "#text" for text
+      std::string text;         // text content (tags leave empty)
+      std::vector<size_t> kids; // indices into Document::arena
 };
-Node Parse(const std::vector<Token> &toks);
+struct Document {
+      std::vector<Node> arena; // arena[0] is always the "document" root
+};
+Document Parse(const std::vector<Token> &toks);
 
 } // namespace Tess::Html

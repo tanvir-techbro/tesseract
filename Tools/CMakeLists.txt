@@ -6,15 +6,27 @@
 ## Released under the MIT License.
 ##
 
-# Developer tools (lexdump, ...). Built with the main project.
+# Developer tools (lexdump, treedump, ...). Built with the main project.
 
 add_executable(lexdump
-    LexDump.cpp
+    Debug/LexDump.cpp
     ../Libreries/HtmlKit/src/Tokenize.cpp
 )
 
 set_target_properties(lexdump PROPERTIES OUTPUT_NAME LexDump)
 
 target_include_directories(lexdump PRIVATE
+    ../Libreries
+)
+
+add_executable(treedump
+    Debug/TreeDump.cpp
+    ../Libreries/HtmlKit/src/Tokenize.cpp
+    ../Libreries/HtmlKit/src/Parse.cpp
+)
+
+set_target_properties(treedump PROPERTIES OUTPUT_NAME TreeDump)
+
+target_include_directories(treedump PRIVATE
     ../Libreries
 )

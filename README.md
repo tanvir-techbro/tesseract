@@ -1,4 +1,4 @@
-# tesseract
+# Tesseract
 
 A simple browser engine.
 
@@ -19,3 +19,6 @@ cmake --build build
 
 Type a `file://` URL or bare path in the URL bar, hit Enter.
 Try `file://Tests/001_html1.html`.
+
+Works now: `file://` pages with headings, paragraphs, and divs.
+Debug tools build along: `build/Tools/LexDump`, `TreeDump`, `UrlDump`.

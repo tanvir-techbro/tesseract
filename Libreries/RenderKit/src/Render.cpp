@@ -63,9 +63,7 @@ float SizeFor(const std::string &tag, float inherited) {
       return inherited;
 }
 bool IsBlock(const std::string &tag) {
-      return tag == "document" || tag == "div" || tag == "p" || tag == "h1" || tag == "h2" ||
-             tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6" || tag == "li" ||
-             tag == "ul";
+      return tag == "document" || tag == "div" || tag == "p" || tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6" || tag == "li" || tag == "ul";
 }
 
 /* Rendering Helpers */

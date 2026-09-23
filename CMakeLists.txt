@@ -38,7 +38,16 @@ add_executable(tesseract
     Libreries/HtmlKit/src/Parse.cpp
     # from RenderKit librery
     Libreries/RenderKit/src/Render.cpp
+    # from NetKit librery
+    Libreries/NetKit/src/Url.cpp
+    Libreries/NetKit/src/Http.cpp
 )
+if(WIN32)
+    target_sources(tesseract PRIVATE Libreries/NetKit/src/SocketWin.cpp)
+    target_link_libraries(tesseract PRIVATE ws2_32)
+else()
+    target_sources(tesseract PRIVATE Libreries/NetKit/src/SocketUnix.cpp)
+endif()
 
 target_include_directories(tesseract PRIVATE
     Libreries

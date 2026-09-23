@@ -8,6 +8,8 @@
 
 /* Render.hpp - Rendering kit */
 
+#pragma once
+
 #include "DrawKit/Draw.hpp"
 #include "HtmlKit/Html.hpp"
 

@@ -84,10 +84,10 @@ int main(int argc, char *argv[]) {
 
       while (running) {
             SDL_FRect urlBox = {
-                .x = windowWidth * 0.05f, // Starts 10% from left border
-                .y = 6.0f,                // 6 pixels from the top
-                .w = windowWidth * 0.9f,  // Spans 80% of window width
-                .h = 30.0f                // Fixed height of 36 pixels
+                  .x = windowWidth * 0.05f, // Starts 10% from left border
+                  .y = 6.0f,                // 6 pixels from the top
+                  .w = windowWidth * 0.9f,  // Spans 80% of window width
+                  .h = 30.0f                // Fixed height of 36 pixels
             };
 
             while (SDL_PollEvent(&event)) {
@@ -101,8 +101,7 @@ int main(int argc, char *argv[]) {
                   } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         float mx = event.button.x;
                         float my = event.button.y;
-                        focused = (mx >= urlBox.x && mx <= urlBox.x + urlBox.w &&
-                                   my >= urlBox.y && my <= urlBox.y + urlBox.h);
+                        focused = (mx >= urlBox.x && mx <= urlBox.x + urlBox.w && my >= urlBox.y && my <= urlBox.y + urlBox.h);
                   } else if (focused && event.type == SDL_EVENT_TEXT_INPUT) {
                         url += event.text.text;
                   } else if (focused && event.type == SDL_EVENT_KEY_DOWN) {
@@ -119,8 +118,12 @@ int main(int argc, char *argv[]) {
             SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
             Tess::Draw::FillRoundedRect(renderer, urlBox, 8.0f);
 
-            // Draw URL Box Border
-            SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+            // Draw URL Box Border (blue when focused)
+            if (focused) {
+                  SDL_SetRenderDrawColor(renderer, 80, 160, 255, 255);
+            } else {
+                  SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+            }
             Tess::Draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
 
             // URL bar owns white/16pt; Render() mutates both for page text
@@ -136,10 +139,10 @@ int main(int argc, char *argv[]) {
             // Page viewport: 5px under URL bar, 5px off left/right/bottom
             float pageY = urlBox.y + urlBox.h + 5.0f;
             SDL_FRect page = {
-                5.0f,
-                pageY,
-                (float)windowWidth - 10.0f,
-                (float)windowHeight - pageY - 5.0f,
+                  5.0f,
+                  pageY,
+                  (float)windowWidth - 10.0f,
+                  (float)windowHeight - pageY - 5.0f,
             };
             if (page.w < 0.0f) {
                   page.w = 0.0f;

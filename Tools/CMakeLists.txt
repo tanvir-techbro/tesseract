@@ -30,3 +30,14 @@ set_target_properties(treedump PROPERTIES OUTPUT_NAME TreeDump)
 target_include_directories(treedump PRIVATE
     ../Libreries
 )
+
+add_executable(urldump
+    Debug/UrlDump.cpp
+    ../Libreries/NetKit/src/Url.cpp
+)
+
+set_target_properties(urldump PROPERTIES OUTPUT_NAME UrlDump)
+
+target_include_directories(urldump PRIVATE
+    ../Libreries
+)

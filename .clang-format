@@ -14,3 +14,6 @@ ColumnLimit: 0
 AllowShortFunctionsOnASingleLine: Empty
 AllowShortIfStatementsOnASingleLine: Never
 BreakBeforeBraces: Attach
+BreakBeforeBinaryOperators: All
+ContinuationIndentWidth: 6
+AlignOperands: DontAlign

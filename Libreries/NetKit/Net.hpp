@@ -29,11 +29,13 @@ struct Url {
       std::string fragment;
       uint16_t port = 0; // 0 = "not specified"
 };
+std::optional<Url> ParseUrl(const std::string &raw);
+
+/* Fetch Response */
 struct Response {
-      int staus;
+      int status;
       std::string body;
 };
-std::optional<Url> ParseUrl(const std::string &raw);
-std::optional<Response> FetchResponse(const std::string &url);
+std::optional<Response> FetchResponse(const Url &url);
 
 } // namespace Tess::Net

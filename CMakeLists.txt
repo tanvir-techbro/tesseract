@@ -40,6 +40,7 @@ add_executable(tesseract
     Libreries/RenderKit/src/Render.cpp
     # from NetKit librery
     Libreries/NetKit/src/Url.cpp
+    Libreries/NetKit/src/Fetch.cpp
     Libreries/NetKit/src/Http.cpp
 )
 if(WIN32)

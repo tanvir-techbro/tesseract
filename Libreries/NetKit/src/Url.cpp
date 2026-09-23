@@ -16,6 +16,7 @@
 
 namespace Tess::Net {
 
+/* Helper */
 static std::optional<uint16_t> ParsePort(const std::string &s) {
       if (s.empty() || s.size() > 5) {
             return std::nullopt;
@@ -32,6 +33,7 @@ static std::optional<uint16_t> ParsePort(const std::string &s) {
       return (uint16_t)port;
 }
 
+/* Main */
 std::optional<Url> ParseUrl(const std::string &raw) {
       Url url;
       size_t pos = 0;
@@ -121,11 +123,6 @@ std::optional<Url> ParseUrl(const std::string &raw) {
       }
 
       return url;
-}
-
-std::optional<Response> FetchResponse(const std::string &url) {
-      (void)url;
-      return std::nullopt; // TODO: picks file/http/https transport
 }
 
 } // namespace Tess::Net

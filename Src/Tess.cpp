@@ -10,12 +10,12 @@
 
 #include "DrawKit/Draw.hpp"
 #include "HtmlKit/Html.hpp"
+#include "NetKit/Net.hpp"
 #include "RenderKit/Render.hpp"
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
-#include <fstream>
+#include <filesystem>
 #include <print>
-#include <sstream>
 #include <string>
 
 int main(int argc, char *argv[]) {
@@ -65,22 +65,9 @@ int main(int argc, char *argv[]) {
       std::string url = "";
       bool focused = true;
 
-      // TEMP: file to render comes from argv[1] until NetKit lands
-      Tess::Html::Document doc;
-      {
-            std::string src = "<h1>tesseract</h1><p>pass a file: ./build/tesseract page.html</p>";
-            if (argc > 1) {
-                  std::ifstream file(argv[1]);
-                  if (file) {
-                        std::ostringstream stream;
-                        stream << file.rdbuf();
-                        src = stream.str();
-                  } else {
-                        std::println(stderr, "cannot open {}", argv[1]);
-                  }
-            }
-            doc = Tess::Html::Parse(Tess::Html::Tokenize(src));
-      }
+      // Page source: navigated from the URL bar on Enter (sample first)
+      Tess::Html::Document doc = Tess::Html::Parse(
+            Tess::Html::Tokenize("<h1>tesseract</h1><p>type a file:// url, hit enter</p>"));
 
       while (running) {
             SDL_FRect urlBox = {
@@ -107,6 +94,22 @@ int main(int argc, char *argv[]) {
                   } else if (focused && event.type == SDL_EVENT_KEY_DOWN) {
                         if (event.key.key == SDLK_BACKSPACE && !url.empty()) {
                               url.pop_back();
+                        } else if (event.key.key == SDLK_RETURN && !url.empty()) {
+                              std::string raw = url;
+                              // bare path -> absolute file:// URL
+                              if (raw.find("://") == std::string::npos) {
+                                    std::error_code ec;
+                                    raw = "file://" + std::filesystem::absolute(raw, ec).string();
+                              }
+                              if (auto u = Tess::Net::ParseUrl(raw)) {
+                                    if (auto res = Tess::Net::FetchResponse(*u)) {
+                                          doc = Tess::Html::Parse(Tess::Html::Tokenize(res->body));
+                                    } else {
+                                          std::println(stderr, "fetch failed: {}", url);
+                                    }
+                              } else {
+                                    std::println(stderr, "bad url: {}", url);
+                              }
                         }
                   }
             }

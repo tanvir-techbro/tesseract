@@ -1,4 +1,5 @@
 build/
+build-asan/
 .cache/
 .idea/
 .cmake-build-debug/

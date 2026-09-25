@@ -53,6 +53,15 @@ int main(int argc, char *argv[]) {
       if (!font) {
             std::println(stderr, "font failed: {}", SDL_GetError());
       }
+      // Page prose font: sans fallback (no CSS yet, monospace stays in chrome)
+      TTF_Font *pageFont = TTF_OpenFont("Assets/fonts/NotoSans-Regular.ttf", 16);
+      if (!pageFont) {
+            pageFont = TTF_OpenFont("../Assets/fonts/NotoSans-Regular.ttf", 16);
+      }
+      if (!pageFont) {
+            std::println(stderr, "page font failed, falling back to mono: {}", SDL_GetError());
+            pageFont = font;
+      }
       TTF_TextEngine *eng = TTF_CreateRendererTextEngine(renderer);
       TTF_Text *txt = TTF_CreateText(eng, font, "", 0);
       TTF_SetTextColor(txt, 255, 255, 255, 255);
@@ -68,6 +77,8 @@ int main(int argc, char *argv[]) {
       // Page source: navigated from the URL bar on Enter (sample first)
       Tess::Html::Document doc = Tess::Html::Parse(
             Tess::Html::Tokenize("<h1>tesseract</h1><p>type a file:// url, hit enter</p>"));
+      Tess::Render::Page content;
+      bool pageDirty = true;
 
       while (running) {
             SDL_FRect urlBox = {
@@ -85,6 +96,7 @@ int main(int argc, char *argv[]) {
                   else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
                         windowWidth = event.window.data1;
                         windowHeight = event.window.data2;
+                        pageDirty = true;
                   } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         float mx = event.button.x;
                         float my = event.button.y;
@@ -104,6 +116,7 @@ int main(int argc, char *argv[]) {
                               if (auto u = Tess::Net::ParseUrl(raw)) {
                                     if (auto res = Tess::Net::FetchResponse(*u)) {
                                           doc = Tess::Html::Parse(Tess::Html::Tokenize(res->body));
+                                          pageDirty = true;
                                     } else {
                                           std::println(stderr, "fetch failed: {}", url);
                                     }
@@ -119,7 +132,7 @@ int main(int argc, char *argv[]) {
 
             // Draw URL Box Background
             SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
-            Tess::Draw::FillRoundedRect(renderer, urlBox, 8.0f);
+            SDL_RenderFillRect(renderer, &urlBox);
 
             // Draw URL Box Border (blue when focused)
             if (focused) {
@@ -127,7 +140,7 @@ int main(int argc, char *argv[]) {
             } else {
                   SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             }
-            Tess::Draw::DrawRoundedOutline(renderer, urlBox, 8.0f);
+            SDL_RenderRect(renderer, &urlBox);
 
             // URL bar owns white/16pt; Render() mutates both for page text
             TTF_SetFontSize(font, 16);
@@ -154,14 +167,19 @@ int main(int argc, char *argv[]) {
                   page.h = 0.0f;
             }
             SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-            Tess::Draw::FillRoundedRect(renderer, page, 8.0f);
+            SDL_RenderFillRect(renderer, &page);
 
             // Clip all page content to the viewport
             SDL_Rect clip = {(int)page.x, (int)page.y, (int)page.w, (int)page.h};
             SDL_SetRenderClipRect(renderer, &clip);
 
-            // TODO: (NetKit): rendered page stuff goes here
-            Tess::Render::Render(renderer, txt, font, doc, page);
+            // Layout only on content/resize; paint replays cached lines
+            if (pageDirty) {
+                  Tess::Render::Layout(content, eng, pageFont, doc,
+                                       page.x + 8, page.y + 8, page.w - 16);
+                  pageDirty = false;
+            }
+            Tess::Render::Paint(renderer, pageFont, content);
 
             SDL_SetRenderClipRect(renderer, nullptr);
 
@@ -170,6 +188,14 @@ int main(int argc, char *argv[]) {
             SDL_Delay(16);
       }
 
+      Tess::Render::ClearPage(content);
+      TTF_DestroyText(txt);
+      TTF_DestroyRendererTextEngine(eng);
+      TTF_CloseFont(font);
+      if (pageFont != font) {
+            TTF_CloseFont(pageFont);
+      }
+      TTF_Quit();
       SDL_StopTextInput(window);
       SDL_DestroyRenderer(renderer);
       SDL_DestroyWindow(window);

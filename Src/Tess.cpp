@@ -76,17 +76,24 @@ int main(int argc, char *argv[]) {
       bool focused = true;
 
       // Page source: navigated from the URL bar on Enter (sample first)
-      Tess::Html::Document doc = Tess::Html::Parse(
-            Tess::Html::Tokenize("<h1>tesseract</h1><p>type a file:// url, hit enter</p>"));
+      Tess::Html::Document doc
+            = Tess::Html::Parse(Tess::Html::Tokenize("<h1>tesseract</h1><p>type a file:// url, hit enter</p>"));
       Tess::Render::Page content;
       bool page_dirty = true;
 
       while (running) {
+            // Chrome slots: [back][forward] url... [menu], 30px boxes
+            SDL_FRect back_box = {5.0f, 6.0f, 30.0f, 30.0f};
+            SDL_FRect fwd_box = {38.0f, 6.0f, 30.0f, 30.0f};
+            SDL_FRect menu_box = {(float)window_width - 35.0f, 6.0f, 30.0f, 30.0f};
             SDL_FRect url_box = {
-                  .x = window_width * 0.05f, // Starts 10% from left border
-                  .y = 6.0f,                // 6 pixels from the top
-                  .w = window_width * 0.9f,  // Spans 80% of window width
-                  .h = 30.0f                // Fixed height of 36 pixels
+                  71.0f,
+                  6.0f,
+                  (float)window_width - 71.0f - 43.0f,
+                  30.0f,
+            };
+            auto HitBox = [](SDL_FRect b, float mx, float my) {
+                  return mx >= b.x && mx <= b.x + b.w && my >= b.y && my <= b.y + b.h;
             };
 
             while (SDL_PollEvent(&event)) {
@@ -101,7 +108,14 @@ int main(int argc, char *argv[]) {
                   } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         float mx = event.button.x;
                         float my = event.button.y;
-                        focused = (mx >= url_box.x && mx <= url_box.x + url_box.w && my >= url_box.y && my <= url_box.y + url_box.h);
+                        if (HitBox(back_box, mx, my)) {
+                              // TODO(history): go back when history exists
+                        } else if (HitBox(fwd_box, mx, my)) {
+                              // TODO(history): go forward when history exists
+                        } else if (HitBox(menu_box, mx, my)) {
+                              // TODO(settings): open menu when settings exist
+                        }
+                        focused = HitBox(url_box, mx, my);
                   } else if (focused && event.type == SDL_EVENT_TEXT_INPUT) {
                         url += event.text.text;
                   } else if (focused && event.type == SDL_EVENT_KEY_DOWN) {
@@ -143,8 +157,14 @@ int main(int argc, char *argv[]) {
             }
             SDL_RenderRect(renderer, &url_box);
 
-            // URL bar owns white/16pt; Render() mutates both for page text
+            // URL bar owns white/16pt; page text uses its own Typeface
             TTF_SetFontSize(font, 16);
+            // Chrome buttons: back/fwd dimmed (no history yet), menu white
+            TTF_SetTextColor(txt, 100, 100, 100, 255);
+            Tess::Draw::DrawText(renderer, txt, "←", back_box.x + 8, back_box.y + 4);
+            Tess::Draw::DrawText(renderer, txt, "→", fwd_box.x + 8, fwd_box.y + 4);
+            TTF_SetTextColor(txt, 255, 255, 255, 255);
+            Tess::Draw::DrawText(renderer, txt, "≡", menu_box.x + 8, menu_box.y + 4);
             TTF_SetTextColor(txt, 255, 255, 255, 255);
             Tess::Draw::DrawText(renderer, txt, url, url_box.x + 8, url_box.y + 5);
 
@@ -176,8 +196,7 @@ int main(int argc, char *argv[]) {
 
             // Layout only on content/resize; paint replays cached lines
             if (page_dirty) {
-                  Tess::Render::Layout(content, page_face, doc,
-                                       page.x + 8, page.y + 8, page.w - 16);
+                  Tess::Render::Layout(content, page_face, doc, page.x + 8, page.y + 8, page.w - 16);
                   page_dirty = false;
             }
             Tess::Render::Paint(renderer, content);

@@ -15,6 +15,32 @@
 
 namespace Tess::Render {
 
+/* Typeface */
+Typeface::Typeface(TTF_TextEngine *e, std::string p) : eng(e), path(std::move(p)) {}
+
+Typeface::~Typeface() {
+      Close();
+}
+
+void Typeface::Close() {
+      for (auto &[size, font] : fonts) {
+            if (font) {
+                  TTF_CloseFont(font);
+            }
+      }
+      fonts.clear();
+}
+
+TTF_Font *Typeface::At(float size) {
+      auto it = fonts.find(size);
+      if (it != fonts.end()) {
+            return it->second;
+      }
+      TTF_Font *font = path.empty() ? nullptr : TTF_OpenFont(path.c_str(), size);
+      fonts[size] = font; // cache null too: don't retry a broken file per line
+      return font;
+}
+
 /* Helper */
 namespace {
 
@@ -62,13 +88,20 @@ float SizeFor(const std::string &tag, float inherited) {
       return inherited;
 }
 bool IsBlock(const std::string &tag) {
-      return tag == "document" || tag == "div" || tag == "p" || tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6" || tag == "li" || tag == "ul";
+      return tag == "document" || tag == "div" || tag == "p" || tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4"
+            || tag == "h5" || tag == "h6" || tag == "li" || tag == "ul";
 }
 
 // Wrap one text run into page lines (layout time only).
-void LayoutText(Page &page, TTF_Text *meas, TTF_Font *font, const std::string &text,
-                float x, float &y, float maxW, float size) {
-      TTF_SetFontSize(font, size);
+void LayoutText(Page &page, Typeface &face, const std::string &text, float x, float &y, float max_w, float size) {
+      TTF_Font *font = face.At(size);
+      if (!font) {
+            return;
+      }
+      TTF_Text *meas = TTF_CreateText(face.eng, font, "", 0);
+      if (!meas) {
+            return;
+      }
       std::string line;
       std::istringstream words(CleanText(text));
       std::string word;
@@ -86,37 +119,42 @@ void LayoutText(Page &page, TTF_Text *meas, TTF_Font *font, const std::string &t
             int w = 0, h = 0;
             TTF_SetTextString(meas, line.c_str(), line.size());
             Tess::Draw::TextSize(meas, w, h);
-            page.lines.push_back(Line{.text = line, .x = x, .y = y, .size = size});
+            TTF_Text *shaped = TTF_CreateText(face.eng, font, line.c_str(), line.size());
+            if (shaped) {
+                  TTF_SetTextColor(shaped, 20, 20, 20, 255);
+            }
+            page.lines.push_back(Line{.text = line, .x = x, .y = y, .size = size, .font = font, .shaped = shaped});
             y += (float)h + 2.0f;
             line.clear();
       };
 
       while (words >> word) {
             std::string trial = line.empty() ? word : line + " " + word;
-            if ((float)measure(trial) > maxW && !line.empty()) {
+            if ((float)measure(trial) > max_w && !line.empty()) {
                   flush();
             }
             line = line.empty() ? word : line + " " + word;
       }
       flush();
+      TTF_DestroyText(meas);
 }
 
-void LayoutChild(Page &page, TTF_Text *meas, TTF_Font *font, const Html::Document &doc,
-                 size_t idx, float x, float &y, float maxW, float size) {
+void LayoutChild(Page &page, Typeface &face, const Html::Document &doc, size_t idx, float x, float &y, float max_w,
+                 float size) {
       const auto &node = doc.arena[idx];
       if (node.tag == "#text") {
-            LayoutText(page, meas, font, node.text, x, y, maxW, size);
+            LayoutText(page, face, node.text, x, y, max_w, size);
             return;
       }
-      float mySize = SizeFor(node.tag, size);
+      float my_size = SizeFor(node.tag, size);
       if (IsBlock(node.tag) && node.tag != "document") {
             y += 4.0f;
       }
       for (size_t k : node.kids) {
-            LayoutChild(page, meas, font, doc, k, x, y, maxW, mySize);
+            LayoutChild(page, face, doc, k, x, y, max_w, my_size);
       }
       if (IsBlock(node.tag) && node.tag != "document") {
-            y += mySize * 0.4f;
+            y += my_size * 0.4f;
       }
 }
 
@@ -131,47 +169,26 @@ void ClearPage(Page &page) {
             }
       }
       page.lines.clear();
-      page.contentH = 0.0f;
+      page.content_h = 0.0f;
 }
 
-void Layout(Page &page, TTF_TextEngine *eng, TTF_Font *font,
-            const Tess::Html::Document &doc, float x, float y, float maxW) {
+void Layout(Page &page, Typeface &face, const Tess::Html::Document &doc, float x, float y, float max_w) {
       ClearPage(page);
-      if (maxW <= 0.0f) {
-            return;
-      }
-      // Scratch text for measuring; shaped per-line texts are created below.
-      TTF_Text *meas = TTF_CreateText(eng, font, "", 0);
-      if (!meas) {
+      if (max_w <= 0.0f) {
             return;
       }
       float cursor = y;
       for (size_t k : doc.arena[0].kids) {
-            LayoutChild(page, meas, font, doc, k, x, cursor, maxW, 16.0f);
+            LayoutChild(page, face, doc, k, x, cursor, max_w, 16.0f);
       }
-      TTF_DestroyText(meas);
-
-      // Shape every line once, at its own size, dark on white page.
-      for (auto &line : page.lines) {
-            TTF_SetFontSize(font, line.size);
-            line.shaped = TTF_CreateText(eng, font, line.text.c_str(), line.text.size());
-            if (line.shaped) {
-                  TTF_SetTextColor(line.shaped, 20, 20, 20, 255);
-            }
-      }
-      page.contentH = cursor - y;
+      page.content_h = cursor - y;
 }
 
-void Paint(SDL_Renderer *r, TTF_Font *font, Page &page) {
+void Paint(SDL_Renderer *r, Page &page) {
       (void)r;
-      float currentSize = -1.0f;
       for (auto &line : page.lines) {
             if (!line.shaped) {
                   continue;
-            }
-            if (line.size != currentSize) {
-                  TTF_SetFontSize(font, line.size);
-                  currentSize = line.size;
             }
             TTF_DrawRendererText(line.shaped, line.x, line.y);
       }

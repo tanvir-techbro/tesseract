@@ -15,6 +15,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
 #include <filesystem>
+#include <fstream>
 #include <print>
 #include <string>
 
@@ -30,10 +31,10 @@ int main(int argc, char *argv[]) {
             return 1;
       }
 
-      int windowWidth = 800;
-      int windowHeight = 600;
+      int window_width = 800;
+      int window_height = 600;
 
-      SDL_Window *window = SDL_CreateWindow("tesseract", windowWidth, windowHeight, SDL_WINDOW_RESIZABLE);
+      SDL_Window *window = SDL_CreateWindow("tesseract", window_width, window_height, SDL_WINDOW_RESIZABLE);
       if (!window) {
             std::println(stderr, "Window creation failed: {}", SDL_GetError());
             SDL_Quit();
@@ -53,18 +54,18 @@ int main(int argc, char *argv[]) {
       if (!font) {
             std::println(stderr, "font failed: {}", SDL_GetError());
       }
-      // Page prose font: sans fallback (no CSS yet, monospace stays in chrome)
-      TTF_Font *pageFont = TTF_OpenFont("Assets/fonts/NotoSans-Regular.ttf", 16);
-      if (!pageFont) {
-            pageFont = TTF_OpenFont("../Assets/fonts/NotoSans-Regular.ttf", 16);
-      }
-      if (!pageFont) {
-            std::println(stderr, "page font failed, falling back to mono: {}", SDL_GetError());
-            pageFont = font;
-      }
       TTF_TextEngine *eng = TTF_CreateRendererTextEngine(renderer);
       TTF_Text *txt = TTF_CreateText(eng, font, "", 0);
       TTF_SetTextColor(txt, 255, 255, 255, 255);
+      // Page prose typeface: sans fallback (no CSS yet, monospace stays in chrome)
+      std::string page_font_path = "Assets/fonts/NotoSans-Regular.ttf";
+      {
+            std::ifstream probe(page_font_path, std::ios::binary);
+            if (!probe) {
+                  page_font_path = "../Assets/fonts/NotoSans-Regular.ttf";
+            }
+      }
+      Tess::Render::Typeface page_face(eng, page_font_path);
 
       /* Main drawing and events and element stuff */
       bool running = true;
@@ -78,13 +79,13 @@ int main(int argc, char *argv[]) {
       Tess::Html::Document doc = Tess::Html::Parse(
             Tess::Html::Tokenize("<h1>tesseract</h1><p>type a file:// url, hit enter</p>"));
       Tess::Render::Page content;
-      bool pageDirty = true;
+      bool page_dirty = true;
 
       while (running) {
-            SDL_FRect urlBox = {
-                  .x = windowWidth * 0.05f, // Starts 10% from left border
+            SDL_FRect url_box = {
+                  .x = window_width * 0.05f, // Starts 10% from left border
                   .y = 6.0f,                // 6 pixels from the top
-                  .w = windowWidth * 0.9f,  // Spans 80% of window width
+                  .w = window_width * 0.9f,  // Spans 80% of window width
                   .h = 30.0f                // Fixed height of 36 pixels
             };
 
@@ -94,13 +95,13 @@ int main(int argc, char *argv[]) {
                   }
                   // 1. Update window dimensions when resized
                   else if (event.type == SDL_EVENT_WINDOW_RESIZED) {
-                        windowWidth = event.window.data1;
-                        windowHeight = event.window.data2;
-                        pageDirty = true;
+                        window_width = event.window.data1;
+                        window_height = event.window.data2;
+                        page_dirty = true;
                   } else if (event.type == SDL_EVENT_MOUSE_BUTTON_DOWN) {
                         float mx = event.button.x;
                         float my = event.button.y;
-                        focused = (mx >= urlBox.x && mx <= urlBox.x + urlBox.w && my >= urlBox.y && my <= urlBox.y + urlBox.h);
+                        focused = (mx >= url_box.x && mx <= url_box.x + url_box.w && my >= url_box.y && my <= url_box.y + url_box.h);
                   } else if (focused && event.type == SDL_EVENT_TEXT_INPUT) {
                         url += event.text.text;
                   } else if (focused && event.type == SDL_EVENT_KEY_DOWN) {
@@ -116,7 +117,7 @@ int main(int argc, char *argv[]) {
                               if (auto u = Tess::Net::ParseUrl(raw)) {
                                     if (auto res = Tess::Net::FetchResponse(*u)) {
                                           doc = Tess::Html::Parse(Tess::Html::Tokenize(res->body));
-                                          pageDirty = true;
+                                          page_dirty = true;
                                     } else {
                                           std::println(stderr, "fetch failed: {}", url);
                                     }
@@ -132,7 +133,7 @@ int main(int argc, char *argv[]) {
 
             // Draw URL Box Background
             SDL_SetRenderDrawColor(renderer, 30, 30, 30, 255);
-            SDL_RenderFillRect(renderer, &urlBox);
+            SDL_RenderFillRect(renderer, &url_box);
 
             // Draw URL Box Border (blue when focused)
             if (focused) {
@@ -140,25 +141,25 @@ int main(int argc, char *argv[]) {
             } else {
                   SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
             }
-            SDL_RenderRect(renderer, &urlBox);
+            SDL_RenderRect(renderer, &url_box);
 
             // URL bar owns white/16pt; Render() mutates both for page text
             TTF_SetFontSize(font, 16);
             TTF_SetTextColor(txt, 255, 255, 255, 255);
-            Tess::Draw::DrawText(renderer, txt, url, urlBox.x + 8, urlBox.y + 5);
+            Tess::Draw::DrawText(renderer, txt, url, url_box.x + 8, url_box.y + 5);
 
             if (focused) {
                   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                  Tess::Draw::DrawCaret(renderer, txt, urlBox.x + 8, urlBox.y + 5);
+                  Tess::Draw::DrawCaret(renderer, txt, url_box.x + 8, url_box.y + 5);
             }
 
             // Page viewport: 5px under URL bar, 5px off left/right/bottom
-            float pageY = urlBox.y + urlBox.h + 5.0f;
+            float page_y = url_box.y + url_box.h + 5.0f;
             SDL_FRect page = {
                   5.0f,
-                  pageY,
-                  (float)windowWidth - 10.0f,
-                  (float)windowHeight - pageY - 5.0f,
+                  page_y,
+                  (float)window_width - 10.0f,
+                  (float)window_height - page_y - 5.0f,
             };
             if (page.w < 0.0f) {
                   page.w = 0.0f;
@@ -174,12 +175,12 @@ int main(int argc, char *argv[]) {
             SDL_SetRenderClipRect(renderer, &clip);
 
             // Layout only on content/resize; paint replays cached lines
-            if (pageDirty) {
-                  Tess::Render::Layout(content, eng, pageFont, doc,
+            if (page_dirty) {
+                  Tess::Render::Layout(content, page_face, doc,
                                        page.x + 8, page.y + 8, page.w - 16);
-                  pageDirty = false;
+                  page_dirty = false;
             }
-            Tess::Render::Paint(renderer, pageFont, content);
+            Tess::Render::Paint(renderer, content);
 
             SDL_SetRenderClipRect(renderer, nullptr);
 
@@ -190,11 +191,9 @@ int main(int argc, char *argv[]) {
 
       Tess::Render::ClearPage(content);
       TTF_DestroyText(txt);
+      page_face.Close(); // before TTF_Quit: stack dtor would run after it
       TTF_DestroyRendererTextEngine(eng);
       TTF_CloseFont(font);
-      if (pageFont != font) {
-            TTF_CloseFont(pageFont);
-      }
       TTF_Quit();
       SDL_StopTextInput(window);
       SDL_DestroyRenderer(renderer);

@@ -43,7 +43,7 @@ std::optional<Url> ParseUrl(const std::string &raw) {
       if (scheme_end == std::string::npos) {
             return std::nullopt;
       }
-      url.scheme = raw.substr(0, scheme_end)
+      url.scheme = raw.substr(0, scheme_end) 
             | std::views::transform([](unsigned char c) { return std::tolower(c); })
             | std::ranges::to<std::string>();
       pos = scheme_end + 3;
@@ -101,20 +101,22 @@ std::optional<Url> ParseUrl(const std::string &raw) {
 
       // path
       if (pos < raw.size() && raw[pos] == '/') {
-            size_t pathEnd = raw.find_first_of("?#", pos);
-            if (pathEnd == std::string::npos)
-                  pathEnd = raw.size();
-            url.path = raw.substr(pos, pathEnd - pos);
-            pos = pathEnd;
+            size_t path_end = raw.find_first_of("?#", pos);
+            if (path_end == std::string::npos) {
+                  path_end = raw.size();
+            }
+            url.path = raw.substr(pos, path_end - pos);
+            pos = path_end;
       }
 
       // query
       if (pos < raw.size() && raw[pos] == '?') {
-            size_t queryEnd = raw.find('#', pos);
-            if (queryEnd == std::string::npos)
-                  queryEnd = raw.size();
-            url.query = raw.substr(pos + 1, queryEnd - pos - 1);
-            pos = queryEnd;
+            size_t query_end = raw.find('#', pos);
+            if (query_end == std::string::npos) {
+                  query_end = raw.size();
+            }
+            url.query = raw.substr(pos + 1, query_end - pos - 1);
+            pos = query_end;
       }
 
       // fragment

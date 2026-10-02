@@ -5,5 +5,7 @@ dist-win/
 .cache/
 .idea/
 .cmake-build-debug/
+.vs/
+out/
 
 compile_commands.json

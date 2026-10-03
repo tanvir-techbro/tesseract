@@ -57,7 +57,8 @@ struct Line {
       float w = 0.0f; // measured width, for underlines + hit rects
       float h = 0.0f; // measured height
       float size = 16.0f;
-      std::string link; // resolved target, empty = plain
+      bool rule = false; // <hr>: draw a line, no text
+      std::string link;  // resolved target, empty = plain
       TTF_Font *font = nullptr;
       TTF_Text *shaped = nullptr;
 };

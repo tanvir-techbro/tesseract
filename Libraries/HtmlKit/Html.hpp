@@ -40,6 +40,8 @@ struct Node {
 struct Document {
       std::vector<Node> arena; // arena[0] is always the "document" root
 };
+// First <title> text in the tree, empty when absent.
+std::string TitleOf(const Document &doc);
 Document Parse(const std::vector<Token> &toks);
 
 } // namespace Tess::Html

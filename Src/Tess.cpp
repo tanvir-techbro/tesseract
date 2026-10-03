@@ -123,6 +123,14 @@ int main(int argc, char *argv[]) {
             page_dirty = true;
             scroll_y = 0.0f;
       };
+      // Window title follows <title>, falling back to the app name.
+      auto SyncTitle = [&] {
+            std::string title = Tess::Html::TitleOf(doc);
+            if (title.empty()) {
+                  title = "tesseract";
+            }
+            SDL_SetWindowTitle(window, title.c_str());
+      };
       auto Navigate = [&](const std::string &raw, bool push_hist) -> std::string {
             std::string target = raw;
             if (target.find("://") == std::string::npos) {
@@ -159,8 +167,10 @@ int main(int argc, char *argv[]) {
             base_raw = target;
             page_dirty = true;
             scroll_y = 0.0f;
+            SyncTitle();
             return target;
       };
+      SyncTitle(); // sample page title at startup
 
       while (running) {
             // Chrome slots: [back][forward] url... [menu], 24px bar at y=5

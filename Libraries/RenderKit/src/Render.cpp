@@ -160,15 +160,17 @@ void LayoutText(Page &page, Typeface &face, const std::string &text, float x, fl
                         TTF_SetTextColor(shaped, 20, 60, 200, 255);
                   }
             }
-            page.lines.push_back(Line{.text = line,
-                                      .x = x,
-                                      .y = y,
-                                      .w = (float)w,
-                                      .h = (float)h,
-                                      .size = size,
-                                      .link = link,
-                                      .font = font,
-                                      .shaped = shaped});
+            page.lines.push_back(Line{
+                  .text = line,
+                  .x = x,
+                  .y = y,
+                  .w = (float)w,
+                  .h = (float)h,
+                  .size = size,
+                  .link = link,
+                  .font = font,
+                  .shaped = shaped,
+            });
             if (!link.empty()) {
                   page.hits.push_back(LinkRect{{x, y, (float)w, (float)h + 2.0f}, link});
             }
@@ -195,8 +197,22 @@ void LayoutChild(Page &page, Typeface &face, const Html::Document &doc, size_t i
             LayoutText(page, face, node.text, x, y, max_w, size, bold, link);
             return;
       }
+      if (node.tag == "head") {
+            return; // non-visual: title/meta/link never paint
+      }
       float my_size = SizeFor(node.tag, size);
       bool my_bold = BoldFor(node.tag, bold);
+      if (node.tag == "br") {
+            y += my_size * 1.2f;
+            return;
+      }
+      if (node.tag == "hr") {
+            y += 4.0f;
+            page.lines.push_back(
+                  Line{.x = x, .y = y, .w = max_w, .h = 2.0f, .size = my_size, .rule = true});
+            y += 6.0f;
+            return;
+      }
       std::string my_link = link;
       if (node.tag == "a") {
             auto it = node.attributes.find("href");
@@ -245,6 +261,12 @@ void Layout(Page &page, Typeface &face, const Tess::Html::Document &doc, float x
 
 void Paint(SDL_Renderer *r, Page &page, float scroll) {
       for (auto &line : page.lines) {
+            if (line.rule) {
+                  SDL_SetRenderDrawColor(r, 150, 150, 150, 255);
+                  float uy = line.y - scroll;
+                  SDL_RenderLine(r, line.x, uy, line.x + line.w, uy);
+                  continue;
+            }
             if (!line.shaped) {
                   continue;
             }

@@ -30,6 +30,11 @@ Document Parse(const std::vector<Token> &toks) {
       auto IsRaw = [](const std::string &tag) {
             return tag == "style" || tag == "script" || tag == "noscript";
       };
+      // Void elements: no close tag, never take kids.
+      auto IsVoid = [](const std::string &tag) {
+            return tag == "br" || tag == "hr" || tag == "img" || tag == "meta" || tag == "link"
+                  || tag == "input" || tag == "isindex";
+      };
 
       for (size_t i = 0; i < toks.size(); ++i) {
             const auto &t = toks[i];
@@ -59,7 +64,9 @@ Document Parse(const std::vector<Token> &toks) {
                   size_t idx = doc.arena.size();
                   doc.arena.push_back(Node{.tag = t.text, .attributes = t.attributes});
                   doc.arena[stack.back()].kids.push_back(idx);
-                  stack.push_back(idx);
+                  if (!IsVoid(t.text)) {
+                        stack.push_back(idx);
+                  }
             }
             // </>: pop to nearest matching open, ignore if none
             else if (t.kind == TokenKind::TK_TagClose) {
@@ -73,6 +80,53 @@ Document Parse(const std::vector<Token> &toks) {
       }
 
       return doc;
+}
+
+std::string TitleOf(const Document &doc) {
+      // Depth-first, first title. Text may arrive split across nodes.
+      std::string out;
+      bool found = false;
+      auto visit = [&](auto &&self, size_t idx) -> void {
+            if (found) {
+                  return;
+            }
+            const Node &node = doc.arena[idx];
+            if (node.tag == "title") {
+                  found = true;
+                  for (size_t k : node.kids) {
+                        if (doc.arena[k].tag == "#text") {
+                              out += doc.arena[k].text;
+                        }
+                  }
+                  return;
+            }
+            for (size_t k : node.kids) {
+                  self(self, k);
+            }
+      };
+      if (!doc.arena.empty()) {
+            visit(visit, 0);
+      }
+      // Collapse whitespace runs: titles span source lines.
+      std::string clean;
+      clean.reserve(out.size());
+      bool space = true;
+      for (char c : out) {
+            bool ws = c == ' ' || c == '\n' || c == '\r' || c == '\t';
+            if (ws) {
+                  if (!space) {
+                        clean += ' ';
+                        space = true;
+                  }
+            } else {
+                  clean += c;
+                  space = false;
+            }
+      }
+      if (!clean.empty() && clean.back() == ' ') {
+            clean.pop_back();
+      }
+      return clean;
 }
 
 } // namespace Tess::Html

@@ -7,7 +7,7 @@ labels: bug
 
 ## What
 
-One line: what broke.
+what broke?
 
 ## Repro
 

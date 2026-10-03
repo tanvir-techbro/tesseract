@@ -61,4 +61,10 @@ target_link_libraries(tesseract PRIVATE
     SDL3_ttf::SDL3_ttf
 )
 
+# GUI app: no console window on Windows (stderr goes nowhere in release).
+# Console tools in Tools/ keep theirs.
+if(WIN32)
+      set_target_properties(tesseract PROPERTIES WIN32_EXECUTABLE TRUE)
+endif()
+
 add_subdirectory(Tools)

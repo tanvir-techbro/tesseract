@@ -2,6 +2,7 @@ build/
 build-asan/
 build-win/
 dist-win/
+thirdparty/
 *.zip
 .cache/
 .idea/

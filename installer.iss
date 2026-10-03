@@ -1,6 +1,7 @@
 ; tesseract Windows installer (Inno Setup 6).
 ; Build on Windows: iscc installer.iss  (output: dist/tesseract-setup.exe)
-; dist-win/ must hold tesseract.exe + DLLs + Assets (see README packaging).
+; Needs dist-win/win64/ staged (run ./build_win64.sh on Linux,
+; or copy an equivalent folder on Windows).
 
 #define AppVersion "0.1.0"
 
@@ -18,7 +19,7 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 
 [Files]
-Source: "dist-win\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "dist-win\win64\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 
 [Icons]
 Name: "{group}\tesseract"; Filename: "{app}\tesseract.exe"; WorkingDir: "{app}"

@@ -109,7 +109,8 @@ float SizeFor(const std::string &tag, float inherited) {
 bool IsBlock(const std::string &tag) {
       return tag == "document" || tag == "div" || tag == "p" || tag == "h1" || tag == "h2"
             || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6" || tag == "li"
-            || tag == "ul";
+            || tag == "ul" || tag == "ol" || tag == "dl" || tag == "dt" || tag == "dd"
+            || tag == "blockquote";
 }
 bool BoldFor(const std::string &tag, bool inherited) {
       if (tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6") {
@@ -172,7 +173,10 @@ void LayoutText(Page &page, Typeface &face, const std::string &text, float x, fl
                   .shaped = shaped,
             });
             if (!link.empty()) {
-                  page.hits.push_back(LinkRect{{x, y, (float)w, (float)h + 2.0f}, link});
+                  page.hits.push_back(LinkRect{
+                        {x, y, (float)w, (float)h + 2.0f},
+                        link,
+                  });
             }
             y += (float)h + 2.0f;
             line.clear();
@@ -202,14 +206,30 @@ void LayoutChild(Page &page, Typeface &face, const Html::Document &doc, size_t i
       }
       float my_size = SizeFor(node.tag, size);
       bool my_bold = BoldFor(node.tag, bold);
+      // Indented blocks: whole subtree shifts right, wrap width shrinks.
+      float my_x = x;
+      float my_w = max_w;
+      if (node.tag == "dd" || node.tag == "blockquote") {
+            my_x += 40.0f;
+            my_w -= 40.0f;
+            if (my_w < 40.0f) {
+                  my_w = 40.0f;
+            }
+      }
       if (node.tag == "br") {
             y += my_size * 1.2f;
             return;
       }
       if (node.tag == "hr") {
             y += 4.0f;
-            page.lines.push_back(
-                  Line{.x = x, .y = y, .w = max_w, .h = 2.0f, .size = my_size, .rule = true});
+            page.lines.push_back(Line{
+                  .x = my_x,
+                  .y = y,
+                  .w = my_w,
+                  .h = 2.0f,
+                  .size = my_size,
+                  .rule = true,
+            });
             y += 6.0f;
             return;
       }
@@ -224,7 +244,7 @@ void LayoutChild(Page &page, Typeface &face, const Html::Document &doc, size_t i
             y += 4.0f;
       }
       for (size_t k : node.kids) {
-            LayoutChild(page, face, doc, k, x, y, max_w, my_size, my_bold, base, my_link);
+            LayoutChild(page, face, doc, k, my_x, y, my_w, my_size, my_bold, base, my_link);
       }
       if (IsBlock(node.tag) && node.tag != "document") {
             y += my_size * 0.4f;

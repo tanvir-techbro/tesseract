@@ -74,8 +74,8 @@ int main(int argc, char *argv[]) {
             return rel; // let the opener report it
       };
 
-      TTF_Font *font
-            = TTF_OpenFont(AssetPath("Assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf").c_str(), 16);
+      TTF_Font *font = TTF_OpenFont(
+            AssetPath("Assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf").c_str(), 16);
       if (!font) {
             std::println(stderr, "font failed: {}", SDL_GetError());
       }
@@ -94,6 +94,9 @@ int main(int argc, char *argv[]) {
             }
       }
       Tess::Render::Typeface page_face(eng, page_font_path, page_bold_path);
+      // Mono face for <pre>: same file as chrome, independent handles.
+      Tess::Render::Typeface mono_face(
+            eng, AssetPath("Assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf"), "");
 
       /* Main drawing and events and element stuff */
       bool running = true;
@@ -299,8 +302,8 @@ int main(int argc, char *argv[]) {
 
             // Layout only on content/resize; paint replays cached lines
             if (page_dirty) {
-                  Tess::Render::Layout(content, page_face, doc, page.x + 8, page.y + 8, page.w - 16,
-                                       base_url);
+                  Tess::Render::Layout(content, page_face, mono_face, doc, page.x + 8, page.y + 8,
+                                       page.w - 16, base_url);
                   page_dirty = false;
             }
             // Clamp scroll to content (8px pads top/bottom)
@@ -323,6 +326,7 @@ int main(int argc, char *argv[]) {
       Tess::Render::ClearPage(content);
       TTF_DestroyText(txt);
       page_face.Close(); // before TTF_Quit: stack dtor would run after it
+      mono_face.Close();
       TTF_DestroyRendererTextEngine(eng);
       TTF_CloseFont(font);
       TTF_Quit();

@@ -38,7 +38,10 @@ add_executable(tesseract
     Libraries/HtmlKit/src/Tokenize.cpp
     Libraries/HtmlKit/src/Parse.cpp
     # from RenderKit library
-    Libraries/RenderKit/src/Render.cpp
+    Libraries/RenderKit/src/Typeface.cpp
+    Libraries/RenderKit/src/Text.cpp
+    Libraries/RenderKit/src/Layout.cpp
+    Libraries/RenderKit/src/Paint.cpp
     # from NetKit library
     Libraries/NetKit/src/Url.cpp
     Libraries/NetKit/src/Fetch.cpp

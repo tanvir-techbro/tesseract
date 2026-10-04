@@ -77,9 +77,9 @@ struct Page {
 void ClearPage(Page &page);
 
 // Build lines once per content/resize. Shapes every line up front;
-// nothing here runs per frame.
-void Layout(Page &page, Typeface &face, const Tess::Html::Document &doc, float x, float y,
-            float max_w, const Tess::Net::Url &base);
+// nothing here runs per frame. mono renders <pre> subtrees.
+void Layout(Page &page, Typeface &face, Typeface &mono, const Tess::Html::Document &doc, float x,
+            float y, float max_w, const Tess::Net::Url &base);
 
 // Per frame: draw cached lines only. No shaping, no measuring,
 // no font mutation. scroll offsets content upward (clipped).

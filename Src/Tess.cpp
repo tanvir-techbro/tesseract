@@ -82,15 +82,15 @@ int main(int argc, char *argv[]) {
       TTF_TextEngine *eng = TTF_CreateRendererTextEngine(renderer);
       TTF_Text *txt = TTF_CreateText(eng, font, "", 0);
       TTF_SetTextColor(txt, 255, 255, 255, 255);
-      // Page prose typeface: sans fallback (no CSS yet, monospace stays in chrome)
-      std::string page_font_path = AssetPath("Assets/fonts/NotoSans-Regular.ttf");
-      std::string page_bold_path = AssetPath("Assets/fonts/NotoSans-Bold.ttf");
+      // Page prose typeface: serif default (monospace stays in chrome)
+      std::string page_font_path = AssetPath("Assets/fonts/Default/TimesNewRomanPSMT.ttf");
+      std::string page_bold_path = AssetPath("Assets/fonts/Default/TimesNewRomanPS-BoldMT.ttf");
       {
             std::ifstream probe(page_font_path, std::ios::binary);
-            if (!probe) { // sans missing: fall back to mono for everything
-                  std::println(stderr, "sans font missing, using mono: {}", SDL_GetError());
-                  page_font_path = AssetPath("Assets/fonts/CaskaydiaCoveNerdFontMono-Regular.ttf");
-                  page_bold_path = AssetPath("Assets/fonts/CaskaydiaCoveNerdFontMono-Bold.ttf");
+            if (!probe) { // serif missing: fall back to sans, then mono
+                  std::println(stderr, "serif font missing, using sans: {}", SDL_GetError());
+                  page_font_path = AssetPath("Assets/fonts/NotoSans-Regular.ttf");
+                  page_bold_path = AssetPath("Assets/fonts/NotoSans-Bold.ttf");
             }
       }
       Tess::Render::Typeface page_face(eng, page_font_path, page_bold_path);

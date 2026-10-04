@@ -6,6 +6,9 @@
 ** Released under the MIT License.
 */
 
+/* Paint.cpp - per-frame replay: blit cached lines, rules, underlines.
+   No shaping, no measuring, no font mutation here ever. */
+
 #include "RenderKit/Render.hpp"
 #include <SDL3/SDL_render.h>
 #include <SDL3_ttf/SDL_ttf.h>
@@ -35,6 +38,5 @@ void Paint(SDL_Renderer *r, Page &page, float scroll) {
             }
       }
 }
-
 
 } // namespace Tess::Render

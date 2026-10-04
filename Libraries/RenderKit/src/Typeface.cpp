@@ -6,6 +6,9 @@
 ** Released under the MIT License.
 */
 
+/* Typeface.cpp - font cache: one TTF_Font per size+weight.
+   Callers use At(), never SetFontSize (that re-shapes everything). */
+
 #include "RenderKit/Render.hpp"
 #include <string>
 

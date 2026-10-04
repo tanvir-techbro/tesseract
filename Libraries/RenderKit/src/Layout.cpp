@@ -6,6 +6,9 @@
 ** Released under the MIT License.
 */
 
+/* Layout.cpp - tree walk: tags to geometry. Owns block gaps, indent,
+   sizes, links, and the Layout()/ClearPage() entry points. */
+
 #include "RenderKit/Render.hpp"
 #include "RenderKit/src/Internal.hpp"
 
@@ -44,7 +47,8 @@ bool IsBlock(const std::string &tag) {
             || tag == "dd" || tag == "blockquote";
 }
 bool BoldFor(const std::string &tag, bool inherited) {
-      if (tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6") {
+      if (tag == "h1" || tag == "h2" || tag == "h3" || tag == "h4" || tag == "h5" || tag == "h6"
+          || tag == "b" || tag == "strong") {
             return true;
       }
       return inherited;

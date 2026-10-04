@@ -6,6 +6,9 @@
 ** Released under the MIT License.
 */
 
+/* Text.cpp - word wrap + pre verbatim. Turns one text run into
+   shaped page Lines. Called only from Layout.cpp via Internal.hpp. */
+
 #include "RenderKit/Render.hpp"
 #include <SDL3_ttf/SDL_ttf.h>
 #include <sstream>
@@ -130,9 +133,14 @@ void LayoutText(Page &page, Typeface &face, const std::string &text, float x, fl
                               TTF_SetTextColor(shaped, 20, 20, 20, 255);
                         }
                   }
-                  page.lines.push_back(
-                        Line{.text = cur, .x = x, .y = y, .w = (float)w, .h = (float)h,
-                             .size = size, .font = font, .shaped = shaped});
+                  page.lines.push_back(Line{.text = cur,
+                                            .x = x,
+                                            .y = y,
+                                            .w = (float)w,
+                                            .h = (float)h,
+                                            .size = size,
+                                            .font = font,
+                                            .shaped = shaped});
                   y += (float)h + 2.0f;
             };
             for (char c : text) {

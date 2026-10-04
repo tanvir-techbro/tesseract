@@ -30,6 +30,19 @@ Document Parse(const std::vector<Token> &toks) {
       auto IsRaw = [](const std::string &tag) {
             return tag == "style" || tag == "script" || tag == "noscript";
       };
+      // Optional end tags: opening one auto-closes an open sibling.
+      auto AutoCloses = [](const std::string &open, const std::string &tag) {
+            if (open == "dt" || open == "dd") {
+                  return tag == "dt" || tag == "dd";
+            }
+            if (open == "li") {
+                  return tag == "li";
+            }
+            if (open == "p") {
+                  return tag == "p";
+            }
+            return false;
+      };
       // Void elements: no close tag, never take kids.
       auto IsVoid = [](const std::string &tag) {
             return tag == "br" || tag == "hr" || tag == "img" || tag == "meta" || tag == "link"
@@ -60,6 +73,10 @@ Document Parse(const std::vector<Token> &toks) {
                               }
                         }
                         continue;
+                  }
+                  // Implicit close first: <dt> ends an open <dd>, etc.
+                  while (stack.size() > 1 && AutoCloses(t.text, doc.arena[stack.back()].tag)) {
+                        stack.pop_back();
                   }
                   size_t idx = doc.arena.size();
                   doc.arena.push_back(Node{.tag = t.text, .attributes = t.attributes});

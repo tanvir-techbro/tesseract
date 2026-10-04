@@ -240,13 +240,19 @@ void LayoutChild(Page &page, Typeface &face, const Html::Document &doc, size_t i
                   my_link = Tess::Net::Resolve(base, it->second);
             }
       }
-      if (IsBlock(node.tag) && node.tag != "document") {
+      // Compact definition lists: dt/dd skip the generic block gaps.
+      bool compact = (node.tag == "dt" || node.tag == "dd");
+      if (!compact && IsBlock(node.tag) && node.tag != "document") {
             y += 4.0f;
       }
       for (size_t k : node.kids) {
             LayoutChild(page, face, doc, k, my_x, y, my_w, my_size, my_bold, base, my_link);
       }
-      if (IsBlock(node.tag) && node.tag != "document") {
+      if (compact) {
+            if (node.tag == "dd") {
+                  y += 2.0f;
+            }
+      } else if (IsBlock(node.tag) && node.tag != "document") {
             y += my_size * 0.4f;
       }
 }

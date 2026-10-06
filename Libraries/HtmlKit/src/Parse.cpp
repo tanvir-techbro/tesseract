@@ -48,6 +48,46 @@ Document Parse(const std::vector<Token> &toks) {
             return tag == "br" || tag == "hr" || tag == "img" || tag == "meta" || tag == "link"
                   || tag == "input" || tag == "isindex";
       };
+      // Unknown entities pass through untouched.
+      auto DecodeEntities = [](const std::string &s) {
+            std::string out;
+            out.reserve(s.size());
+            for (size_t i = 0; i < s.size();) {
+                  if (s[i] == '&') {
+                        size_t semi = s.find(';', i + 1);
+                        if (semi != std::string::npos && semi - i <= 6) {
+                              std::string ent = s.substr(i, semi - i + 1);
+                              if (ent == "&amp;") {
+                                    out += '&';
+                                    i = semi + 1;
+                                    continue;
+                              }
+                              if (ent == "&lt;") {
+                                    out += '<';
+                                    i = semi + 1;
+                                    continue;
+                              }
+                              if (ent == "&gt;") {
+                                    out += '>';
+                                    i = semi + 1;
+                                    continue;
+                              }
+                              if (ent == "&quot;") {
+                                    out += '"';
+                                    i = semi + 1;
+                                    continue;
+                              }
+                              if (ent == "&#39;") {
+                                    out += '\'';
+                                    i = semi + 1;
+                                    continue;
+                              }
+                        }
+                  }
+                  out += s[i++];
+            }
+            return out;
+      };
 
       for (size_t i = 0; i < toks.size(); ++i) {
             const auto &t = toks[i];
@@ -56,7 +96,7 @@ Document Parse(const std::vector<Token> &toks) {
                         continue;
                   }
                   size_t idx = doc.arena.size();
-                  doc.arena.push_back(Node{.tag = "#text", .text = t.text});
+                  doc.arena.push_back(Node{.tag = "#text", .text = DecodeEntities(t.text)});
                   doc.arena[stack.back()].kids.push_back(idx);
             }
             // <>
